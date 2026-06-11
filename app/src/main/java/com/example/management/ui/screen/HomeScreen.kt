@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.management.data.model.User
+import com.example.management.ui.screen.LocalUsersScreen
 import com.example.management.viewmodel.UserViewModel
 import com.example.management.viewmodel.UserViewModelFactory
 
@@ -81,7 +82,6 @@ fun ApiUserItem(user: User) {
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Círculo con inicial del nombre
             Box(
                 modifier = Modifier
                     .size(48.dp)
@@ -107,7 +107,10 @@ fun ApiUserItem(user: User) {
 }
 
 @Composable
-fun MainHomeScreen(navController: NavController) { // renombrado para evitar conflicto
+fun MainHomeScreen(
+    navController: NavController,
+    userViewModel: UserViewModel
+) {
     var selected by remember { mutableIntStateOf(0) }
     Scaffold(
         bottomBar = {
@@ -129,8 +132,8 @@ fun MainHomeScreen(navController: NavController) { // renombrado para evitar con
     ) { padding ->
         Box(modifier = Modifier.padding(padding)) {
             when (selected) {
-                0 -> HomeScreen()
-                1 -> LocalUsersScreen(navController = navController)
+                0 -> HomeScreen(viewModel = userViewModel)
+                1 -> LocalUsersScreen(navController = navController, viewModel = userViewModel)
             }
         }
     }

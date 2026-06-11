@@ -1,5 +1,4 @@
-// ui/screens/LocalUsersScreen.kt
-package com.example.management.ui.screens
+package com.example.management.ui.screen
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,10 +28,13 @@ fun LocalUsersScreen(
     val operationState by viewModel.localOperationState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Estado para el menú desplegable y diálogo de eliminación
     var expandedMenuUserId by remember { mutableStateOf<Int?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var userToDelete by remember { mutableStateOf<LocalUser?>(null) }
+
+    LaunchedEffect(Unit) {
+        viewModel.loadLocalUsers()
+    }
 
     LaunchedEffect(operationState) {
         when (operationState) {
@@ -62,7 +64,7 @@ fun LocalUsersScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate("add_edit_user?userId=-1") },
+                onClick = { navController.navigate("register_user") },
                 containerColor = Color(0xFF6200EE)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Nuevo usuario", tint = Color.White)
@@ -93,7 +95,6 @@ fun LocalUsersScreen(
                             Text(text = user.username, fontWeight = MaterialTheme.typography.titleMedium.fontWeight)
                             Text(text = user.email, color = Color.Gray)
                         }
-                        // Menú de tres puntos
                         Box {
                             IconButton(
                                 onClick = { expandedMenuUserId = if (expandedMenuUserId == user.id) null else user.id }
@@ -108,7 +109,7 @@ fun LocalUsersScreen(
                                     text = { Text("Editar") },
                                     onClick = {
                                         expandedMenuUserId = null
-                                        navController.navigate("add_edit_user?userId=${user.id}")
+                                                navController.navigate("edit_user/${user.id}")
                                     },
                                     leadingIcon = { Icon(Icons.Default.Edit, null) }
                                 )
@@ -129,7 +130,7 @@ fun LocalUsersScreen(
         }
     }
 
-    // Diálogo de confirmación de eliminación
+
     if (showDeleteDialog && userToDelete != null) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },

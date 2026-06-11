@@ -1,7 +1,7 @@
 plugins {
-    alias(libs.plugins.android.application) apply false
-    alias(libs.plugins.kotlin.android) apply false
-    alias(libs.plugins.kotlin.ksp) apply false
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.kapt)
 }
 
 android {
@@ -57,26 +57,18 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
 
-    // Retrofit
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
-    implementation(libs.logging.interceptor)
 
-    // ViewModel Compose
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-
-    // Room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler)   // KSP en lugar de kapt
+    kapt(libs.androidx.room.compiler)
 
-    // Navigation Compose
     implementation(libs.androidx.navigation.compose)
 
-    // Material Icons Extended
     implementation(libs.androidx.material.icons.extended)
 
-    // Testing
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

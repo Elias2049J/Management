@@ -14,20 +14,12 @@ class UserRepositoryImpl(
         return apiService.getUsers()
     }
 
-    override suspend fun getLocalUsers(): List<User> {
-        return userDao.getUsers()
-    }
-
-    override suspend fun findById(id: Int): List<User> {
-        return userDao.findById(id)
-    }
-
     override suspend fun registerUser(user: LocalUser) {
         userDao.insertUser(user)
     }
 
     override suspend fun update(user: LocalUser) {
-        userDao.update(user)
+        userDao.updateUser(user)
     }
 
     override suspend fun login(username: String, password: String): LocalUser? {
@@ -39,7 +31,11 @@ class UserRepositoryImpl(
     }
 
     override suspend fun getAllLocalUsers(): List<LocalUser> {
-        return userDao.getAllUsers()
+        return userDao.findAll()
+    }
+
+    override suspend fun getLocalUserById(id: Int): LocalUser? {
+        return userDao.findById(id)
     }
 
     override suspend fun updateUser(user: LocalUser) {

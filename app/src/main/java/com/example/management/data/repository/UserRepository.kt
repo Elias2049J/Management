@@ -7,6 +7,8 @@ interface UserRepository {
 
     suspend fun getUsersFromApi(): List<User>
 
+
+
     suspend fun registerUser(user: LocalUser)
 
     suspend fun update(user: LocalUser)
@@ -14,6 +16,8 @@ interface UserRepository {
     suspend fun login(username: String, password: String): LocalUser?
 
     suspend fun getAllLocalUsers(): List<LocalUser>
+
+    suspend fun getLocalUserById(id: Int): LocalUser?
 
     suspend fun updateUser(user: LocalUser)
 

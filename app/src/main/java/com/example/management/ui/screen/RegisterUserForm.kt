@@ -26,6 +26,13 @@ fun RegisterUserScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var showPass by remember { mutableStateOf(false) }
+    val operationState by userViewModel.localOperationState.collectAsState()
+
+    LaunchedEffect(operationState) {
+        if (operationState is UserViewModel.LocalOperationState.Success) {
+            onBack()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -103,7 +110,7 @@ fun RegisterUserScreen(
                         email = email,
                         password = password
                     )
-                    userViewModel.registerUser(newUser)
+                    userViewModel.registerLocalUser(newUser)
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
@@ -111,6 +118,23 @@ fun RegisterUserScreen(
                 )
             ) {
                 Text("Guardar", color = Color.White)
+            }
+
+            when (operationState) {
+                is UserViewModel.LocalOperationState.Loading -> {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    CircularProgressIndicator()
+                }
+
+                is UserViewModel.LocalOperationState.Error -> {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = (operationState as UserViewModel.LocalOperationState.Error).message,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+
+                else -> Unit
             }
         }
     }

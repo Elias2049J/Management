@@ -11,6 +11,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -18,20 +19,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.management.data.local.LocalUser
 import com.example.management.ui.components.ErrorAlertDialog
 import com.example.management.viewmodel.RegistrationState
 import com.example.management.viewmodel.UserViewModel
-import com.example.management.viewmodel.UserViewModelFactory
 
 @Composable
-fun SignUpScreen(onSignUpSuccess: () -> Unit, onNavigateToLogin: () -> Unit) {
-    val context = LocalContext.current
-    val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(context))
+fun SignUpScreen(
+    onSignUpSuccess: () -> Unit,
+    onNavigateToLogin: () -> Unit,
+    userViewModel: UserViewModel
+) {
     val registrationState by userViewModel.registrationState.collectAsState()
 
     var username by remember { mutableStateOf("") }
@@ -39,6 +39,12 @@ fun SignUpScreen(onSignUpSuccess: () -> Unit, onNavigateToLogin: () -> Unit) {
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var showAlertDialog by remember {mutableStateOf(false)}
+
+    LaunchedEffect(registrationState) {
+        if (registrationState is RegistrationState.Success) {
+            onSignUpSuccess()
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -85,7 +91,12 @@ fun SignUpScreen(onSignUpSuccess: () -> Unit, onNavigateToLogin: () -> Unit) {
 
         Button(onClick = {
             if (password == confirmPassword) {
-                val user = LocalUser(name = "", username = username, email = email, password = password)
+                val user = LocalUser(
+                    name = "",
+                    username = username,
+                    email = email,
+                    password = password
+                )
                 userViewModel.registerUser(user)
             } else {
                 showAlertDialog = true
@@ -96,9 +107,6 @@ fun SignUpScreen(onSignUpSuccess: () -> Unit, onNavigateToLogin: () -> Unit) {
 
         when (registrationState) {
             is RegistrationState.Loading -> CircularProgressIndicator()
-            is RegistrationState.Success -> {
-                onSignUpSuccess()
-            }
             is RegistrationState.Error -> {
                 Text((registrationState as RegistrationState.Error).message)
             }
@@ -114,7 +122,7 @@ fun SignUpScreen(onSignUpSuccess: () -> Unit, onNavigateToLogin: () -> Unit) {
 
     if (showAlertDialog) {
         ErrorAlertDialog(
-            errorMsg = "Credenciales Incorrectas",
+            errorMsg = "Las contraseñas no coinciden",
             onConfirm = { showAlertDialog = false },
             onDismiss = { showAlertDialog = false }
         )

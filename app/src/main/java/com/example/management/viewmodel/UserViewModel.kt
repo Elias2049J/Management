@@ -37,6 +37,28 @@ class UserViewModel(
     val localUsers: StateFlow<List<LocalUser>>
         get() = _localUsers
 
+    private val _localOperationState = MutableStateFlow<LocalOperationState>(LocalOperationState.Idle)
+    val localOperationState: StateFlow<LocalOperationState> = _localOperationState
+
+    sealed class LocalOperationState {
+        object Idle : LocalOperationState()
+        object Loading : LocalOperationState()
+        data class Success(val message: String) : LocalOperationState()
+        data class Error(val message: String) : LocalOperationState()
+    }
+
+    fun resetLoginState() {
+        _loginState.value = LoginState.Idle
+    }
+
+    fun resetRegistrationState() {
+        _registrationState.value = RegistrationState.Idle
+    }
+
+    fun resetLocalOperationState() {
+        _localOperationState.value = LocalOperationState.Idle
+    }
+
     fun getUsers() {
         viewModelScope.launch {
             try {
@@ -56,6 +78,7 @@ class UserViewModel(
             try {
                 _registrationState.value = RegistrationState.Loading
                 repository.registerUser(user)
+                runCatching { _localUsers.value = repository.getAllLocalUsers() }
                 _registrationState.value = RegistrationState.Success
             } catch (e: Exception) {
                 _registrationState.value = RegistrationState.Error("Error al registrar usuario")
@@ -63,16 +86,21 @@ class UserViewModel(
         }
     }
 
-    fun update(user: LocalUser) {
+    fun registerLocalUser(user: LocalUser) {
         viewModelScope.launch {
             try {
-                _updateState.value = UpdateState.Loading
-                repository.update(user)
-                _updateState.value = UpdateState.Success
+                _localOperationState.value = LocalOperationState.Loading
+                repository.registerUser(user)
+                runCatching { _localUsers.value = repository.getAllLocalUsers() }
+                _localOperationState.value = LocalOperationState.Success("Usuario guardado correctamente")
             } catch (e: Exception) {
-                _updateState.value = UpdateState.Error("Error al actualizar usuario")
+                _localOperationState.value = LocalOperationState.Error("Error al registrar usuario")
             }
         }
+    }
+
+    fun update(user: LocalUser) {
+        updateLocalUser(user)
     }
 
     fun login(username: String, password: String) {
@@ -91,12 +119,19 @@ class UserViewModel(
         }
     }
 
+    suspend fun getLocalUserById(id: Int): LocalUser? {
+        return repository.getLocalUserById(id)
+    }
+
     fun loadLocalUsers() {
 
         viewModelScope.launch {
 
-            _localUsers.value =
-                repository.getAllLocalUsers()
+            try {
+                _localUsers.value = repository.getAllLocalUsers()
+            } catch (e: Exception) {
+                _localOperationState.value = LocalOperationState.Error("Error al cargar usuarios locales")
+            }
         }
     }
 
@@ -105,10 +140,14 @@ class UserViewModel(
     ) {
 
         viewModelScope.launch {
-
-            repository.deleteUser(user)
-
-            loadLocalUsers()
+            try {
+                _localOperationState.value = LocalOperationState.Loading
+                repository.deleteUser(user)
+                runCatching { _localUsers.value = repository.getAllLocalUsers() }
+                _localOperationState.value = LocalOperationState.Success("Usuario eliminado correctamente")
+            } catch (e: Exception) {
+                _localOperationState.value = LocalOperationState.Error("Error al eliminar usuario")
+            }
         }
     }
 
@@ -117,10 +156,14 @@ class UserViewModel(
     ) {
 
         viewModelScope.launch {
-
-            repository.updateUser(user)
-
-            loadLocalUsers()
+            try {
+                _localOperationState.value = LocalOperationState.Loading
+                repository.updateUser(user)
+                runCatching { _localUsers.value = repository.getAllLocalUsers() }
+                _localOperationState.value = LocalOperationState.Success("Usuario actualizado correctamente")
+            } catch (e: Exception) {
+                _localOperationState.value = LocalOperationState.Error("Error al actualizar usuario")
+            }
         }
     }
 }

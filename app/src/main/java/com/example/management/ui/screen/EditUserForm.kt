@@ -19,14 +19,21 @@ import com.example.management.viewmodel.UserViewModel
 fun EditUserScreen(
     localUser: LocalUser,
     userViewModel: UserViewModel,
-    onBack: () -> Unit,
-    onDelete: () -> Unit
+    onBack: () -> Unit
 ) {
-    var name by remember { mutableStateOf(localUser.username) }
+    var name by remember { mutableStateOf(localUser.name) }
     var username by remember { mutableStateOf(localUser.username) }
     var email by remember { mutableStateOf(localUser.email) }
     var password by remember { mutableStateOf(localUser.password) }
     var showPass by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    val operationState by userViewModel.localOperationState.collectAsState()
+
+    LaunchedEffect(operationState) {
+        if (operationState is UserViewModel.LocalOperationState.Success) {
+            onBack()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -103,12 +110,13 @@ fun EditUserScreen(
                 Button(
                     onClick = {
                         val updatedUser = LocalUser(
+                            id = localUser.id,
                             name = name,
                             username = username,
                             email = email,
                             password = password
                         )
-                        userViewModel.update(updatedUser)
+                        userViewModel.updateLocalUser(updatedUser)
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Purple40
@@ -121,7 +129,7 @@ fun EditUserScreen(
                 Spacer(modifier = Modifier.width(12.dp))
 
                 Button(
-                    onClick = { onDelete() },
+                    onClick = { showDeleteDialog = true },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.error
                     ),
@@ -130,6 +138,48 @@ fun EditUserScreen(
                     Text("Eliminar usuario")
                 }
             }
+
+            when (operationState) {
+                is UserViewModel.LocalOperationState.Loading -> {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    CircularProgressIndicator()
+                }
+
+                is UserViewModel.LocalOperationState.Error -> {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = (operationState as UserViewModel.LocalOperationState.Error).message,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+
+                else -> Unit
+            }
         }
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Eliminar usuario") },
+            text = {
+                Text("¿Estás seguro de que deseas eliminar este usuario?\nEsta acción no se puede deshacer.")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+                        userViewModel.deleteLocalUser(localUser)
+                    }
+                ) {
+                    Text("Eliminar", color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 }

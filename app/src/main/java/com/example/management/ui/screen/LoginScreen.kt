@@ -11,6 +11,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -18,22 +19,27 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.management.viewmodel.LoginState
 import com.example.management.viewmodel.UserViewModel
-import com.example.management.viewmodel.UserViewModelFactory
 
 @Composable
-fun LoginScreen(onLoginSuccess: () -> Unit, onNavigateToSignUp: () -> Unit) {
-    val context = LocalContext.current
-    val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(context))
+fun LoginScreen(
+    onLoginSuccess: () -> Unit,
+    onNavigateToSignUp: () -> Unit,
+    userViewModel: UserViewModel
+) {
     val loginState by userViewModel.loginState.collectAsState()
 
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+
+    LaunchedEffect(loginState) {
+        if (loginState is LoginState.Success) {
+            onLoginSuccess()
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -69,9 +75,6 @@ fun LoginScreen(onLoginSuccess: () -> Unit, onNavigateToSignUp: () -> Unit) {
 
         when (loginState) {
             is LoginState.Loading -> CircularProgressIndicator()
-            is LoginState.Success -> {
-                onLoginSuccess()
-            }
             is LoginState.Error -> {
                 Text((loginState as LoginState.Error).message)
             }
