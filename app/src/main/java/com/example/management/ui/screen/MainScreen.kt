@@ -22,8 +22,12 @@ fun MainScreen() {
                 onNavigateToLogin = { navController.navigate("login") }
             )
         }
-        composable("user") {
-            UserScreen()
+        composable("home") {
+            HomeScreen()
+        }
+
+        onLoginSuccess = {
+            navController.navigate("home")
         }
     }
 }
