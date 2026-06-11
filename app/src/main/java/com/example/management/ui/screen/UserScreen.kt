@@ -38,19 +38,19 @@ import com.example.management.data.repository.UserRepositoryImpl
 import com.example.management.ui.components.UserCard
 import com.example.management.viewmodel.UserViewModel
 import com.example.management.viewmodel.UserViewModelFactory
+import androidx.compose.ui.platform.LocalContext
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserScreen() {
 
-    val repository: UserRepository = UserRepositoryImpl(
-        apiService = RetrofitClient.apiService
-    )
+    val context = LocalContext.current
 
     val viewModel: UserViewModel = viewModel(
-        factory = UserViewModelFactory(repository)
+        factory = UserViewModelFactory(context)
     )
+
 
     val users by viewModel.users.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -85,7 +85,7 @@ fun UserScreen() {
                         Spacer(modifier = Modifier.padding(4.dp))
 
                         Text(
-                            text = "User Directory",
+                            text = "Usuarios desde API",
                             fontWeight = FontWeight.Bold
                         )
                     }
