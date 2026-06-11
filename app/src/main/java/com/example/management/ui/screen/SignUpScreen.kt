@@ -23,6 +23,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.management.data.local.LocalUser
+import com.example.management.ui.components.ErrorAlertDialog
 import com.example.management.viewmodel.RegistrationState
 import com.example.management.viewmodel.UserViewModel
 import com.example.management.viewmodel.UserViewModelFactory
@@ -37,6 +38,7 @@ fun SignUpScreen(onSignUpSuccess: () -> Unit, onNavigateToLogin: () -> Unit) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
+    var showAlertDialog by remember {mutableStateOf(false)}
 
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -83,10 +85,10 @@ fun SignUpScreen(onSignUpSuccess: () -> Unit, onNavigateToLogin: () -> Unit) {
 
         Button(onClick = {
             if (password == confirmPassword) {
-                val user = LocalUser(username = username, email = email, password = password)
+                val user = LocalUser(name = "", username = username, email = email, password = password)
                 userViewModel.registerUser(user)
             } else {
-                // Show error
+                showAlertDialog = true
             }
         }) {
             Text("Registrarme")
@@ -108,5 +110,13 @@ fun SignUpScreen(onSignUpSuccess: () -> Unit, onNavigateToLogin: () -> Unit) {
         Button(onClick = onNavigateToLogin) {
             Text("¿Ya tienes cuenta? Inicia sesión")
         }
+    }
+
+    if (showAlertDialog) {
+        ErrorAlertDialog(
+            errorMsg = "Credenciales Incorrectas",
+            onConfirm = { showAlertDialog = false },
+            onDismiss = { showAlertDialog = false }
+        )
     }
 }

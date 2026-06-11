@@ -25,6 +25,9 @@ class UserViewModel(
     private val _registrationState = MutableStateFlow<RegistrationState>(RegistrationState.Idle)
     val registrationState: StateFlow<RegistrationState> = _registrationState
 
+    private val _updateState = MutableStateFlow<UpdateState>(UpdateState.Idle)
+    val updateState: StateFlow<UpdateState> = _updateState
+
     private val _loginState = MutableStateFlow<LoginState>(LoginState.Idle)
     val loginState: StateFlow<LoginState> = _loginState
 
@@ -33,7 +36,7 @@ class UserViewModel(
             try {
                 _isLoading.value = true
                 _errorMessage.value = null
-                _users.value = repository.getUsers()
+                _users.value = repository.getUsersFromApi()
             } catch (e: Exception) {
                 _errorMessage.value = "Error al obtener usuarios"
             } finally {
@@ -50,6 +53,18 @@ class UserViewModel(
                 _registrationState.value = RegistrationState.Success
             } catch (e: Exception) {
                 _registrationState.value = RegistrationState.Error("Error al registrar usuario")
+            }
+        }
+    }
+
+    fun update(user: LocalUser) {
+        viewModelScope.launch {
+            try {
+                _updateState.value = UpdateState.Loading
+                repository.update(user)
+                _updateState.value = UpdateState.Success
+            } catch (e: Exception) {
+                _updateState.value = UpdateState.Error("Error al actualizar usuario")
             }
         }
     }
@@ -83,4 +98,11 @@ sealed class LoginState {
     object Loading : LoginState()
     object Success : LoginState()
     data class Error(val message: String) : LoginState()
+}
+
+sealed class UpdateState {
+    object Idle : UpdateState()
+    object Loading : UpdateState()
+    object Success : UpdateState()
+    data class Error(val message: String) : UpdateState()
 }

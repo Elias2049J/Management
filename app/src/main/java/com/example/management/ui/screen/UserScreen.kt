@@ -145,7 +145,6 @@ fun UserScreen() {
                             UserCard(
                                 user = user,
                                 onDetailClick = {
-                                    // Aquí luego puedes navegar a detalle
                                 }
                             )
                         }

@@ -10,12 +10,24 @@ class UserRepositoryImpl(
     private val userDao: UserDao
 ) : UserRepository {
 
-    override suspend fun getUsers(): List<User> {
+    override suspend fun getUsersFromApi(): List<User> {
         return apiService.getUsers()
+    }
+
+    override suspend fun getLocalUsers(): List<User> {
+        return userDao.getUsers()
+    }
+
+    override suspend fun findById(id: Int): List<User> {
+        return userDao.findById(id)
     }
 
     override suspend fun registerUser(user: LocalUser) {
         userDao.insertUser(user)
+    }
+
+    override suspend fun update(user: LocalUser) {
+        userDao.update(user)
     }
 
     override suspend fun login(username: String, password: String): LocalUser? {
