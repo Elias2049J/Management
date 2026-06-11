@@ -16,14 +16,21 @@ data class User(
     val email: String,
 
     @SerializedName("phone")
-    val phone: String,
-
-    @SerializedName("website")
-    val website: String,
+    val phone: String = "",
 
     @SerializedName("address")
-    val address: Address,
+    val address: Address = Address(),
 
     @SerializedName("company")
-    val company: Company
+    val company: Company = Company()
+)
+
+data class Address(
+    @SerializedName("city")
+    val city: String = ""
+)
+
+data class Company(
+    @SerializedName("name")
+    val name: String = ""
 )

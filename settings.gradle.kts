@@ -22,6 +22,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "NetworkingApisRest"
+rootProject.name = "Management"
 include(":app")
  

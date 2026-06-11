@@ -40,6 +40,7 @@ import com.example.management.data.repository.UserRepositoryImpl
 import com.example.management.ui.components.UserCard
 import com.example.management.viewmodel.UserViewModel
 import com.example.management.viewmodel.UserViewModelFactory
+import androidx.compose.ui.platform.LocalContext
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,8 +58,9 @@ fun UserScreen() {
     )
 
     val viewModel: UserViewModel = viewModel(
-        factory = UserViewModelFactory(repository)
+        factory = UserViewModelFactory(context)
     )
+
 
     val users by viewModel.users.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -93,7 +95,7 @@ fun UserScreen() {
                         Spacer(modifier = Modifier.padding(4.dp))
 
                         Text(
-                            text = "User Directory",
+                            text = "Usuarios desde API",
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -153,7 +155,6 @@ fun UserScreen() {
                             UserCard(
                                 user = user,
                                 onDetailClick = {
-                                    // Aquí luego puedes navegar a detalle
                                 }
                             )
                         }
