@@ -28,6 +28,12 @@ class UserViewModel(
     private val _loginState = MutableStateFlow<LoginState>(LoginState.Idle)
     val loginState: StateFlow<LoginState> = _loginState
 
+    private val _localUsers =
+        MutableStateFlow<List<LocalUser>>(emptyList())
+
+    val localUsers: StateFlow<List<LocalUser>>
+        get() = _localUsers
+
     fun getUsers() {
         viewModelScope.launch {
             try {
@@ -67,6 +73,39 @@ class UserViewModel(
             } catch (e: Exception) {
                 _loginState.value = LoginState.Error("Error al iniciar sesión")
             }
+        }
+    }
+
+    fun loadLocalUsers() {
+
+        viewModelScope.launch {
+
+            _localUsers.value =
+                repository.getAllLocalUsers()
+        }
+    }
+
+    fun deleteLocalUser(
+        user: LocalUser
+    ) {
+
+        viewModelScope.launch {
+
+            repository.deleteUser(user)
+
+            loadLocalUsers()
+        }
+    }
+
+    fun updateLocalUser(
+        user: LocalUser
+    ) {
+
+        viewModelScope.launch {
+
+            repository.updateUser(user)
+
+            loadLocalUsers()
         }
     }
 }

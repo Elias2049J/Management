@@ -25,4 +25,16 @@ class UserRepositoryImpl(
         }
         return null
     }
+
+    override suspend fun getAllLocalUsers(): List<LocalUser> {
+        return userDao.getAllUsers()
+    }
+
+    override suspend fun updateUser(user: LocalUser) {
+        userDao.updateUser(user)
+    }
+
+    override suspend fun deleteUser(user: LocalUser) {
+        userDao.deleteUser(user)
+    }
 }

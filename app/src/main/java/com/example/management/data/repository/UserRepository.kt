@@ -10,4 +10,11 @@ interface UserRepository {
     suspend fun registerUser(user: LocalUser)
 
     suspend fun login(username: String, password: String): LocalUser?
+
+    suspend fun getAllLocalUsers(): List<LocalUser>
+
+    suspend fun updateUser(user: LocalUser)
+
+    suspend fun deleteUser(user: LocalUser)
+
 }
