@@ -4,6 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.example.management.ui.screens.HomeScreen
+import com.example.management.ui.screens.MainHomeScreen
 
 @Composable
 fun MainScreen() {
@@ -23,11 +26,14 @@ fun MainScreen() {
             )
         }
         composable("home") {
-            HomeScreen()
+            MainHomeScreen(
+                navController = navController
+            )
         }
 
-        onLoginSuccess = {
-            navController.navigate("home")
+        composable("main_home") {
+            MainHomeScreen(navController = navController)
         }
     }
 }
+

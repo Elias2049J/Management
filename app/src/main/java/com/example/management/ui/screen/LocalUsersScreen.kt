@@ -1,94 +1,125 @@
-package com.example.management.ui.screen
+// ui/screens/LocalUsersScreen.kt
+package com.example.management.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.management.data.local.LocalUser
+import com.example.management.viewmodel.UserViewModel
+import com.example.management.viewmodel.UserViewModelFactory
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocalUsersScreen(
-    users: List<LocalUser>,
-    onDelete: (LocalUser) -> Unit
+    navController: NavController,
+    viewModel: UserViewModel = viewModel(factory = UserViewModelFactory(LocalContext.current))
 ) {
+    val localUsers by viewModel.localUsers.collectAsState()
+    val operationState by viewModel.localOperationState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    var selectedUser by remember {
-        mutableStateOf<LocalUser?>(null)
+    // Estado para el menú desplegable y diálogo de eliminación
+    var expandedMenuUserId by remember { mutableStateOf<Int?>(null) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var userToDelete by remember { mutableStateOf<LocalUser?>(null) }
+
+    LaunchedEffect(operationState) {
+        when (operationState) {
+            is UserViewModel.LocalOperationState.Success -> {
+                snackbarHostState.showSnackbar((operationState as UserViewModel.LocalOperationState.Success).message)
+                viewModel.resetLocalOperationState()
+            }
+            is UserViewModel.LocalOperationState.Error -> {
+                snackbarHostState.showSnackbar((operationState as UserViewModel.LocalOperationState.Error).message)
+                viewModel.resetLocalOperationState()
+            }
+            else -> Unit
+        }
     }
 
     Scaffold(
-
-        floatingActionButton = {
-
-            FloatingActionButton(
-                onClick = {
-                    // Registrar usuario
+        topBar = {
+            TopAppBar(
+                title = { Text("Usuarios locales", color = Color.White) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF6200EE)),
+                actions = {
+                    IconButton(onClick = { /* Búsqueda opcional */ }) {
+                        Icon(Icons.Default.Search, contentDescription = "Buscar", tint = Color.White)
+                    }
                 }
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { navController.navigate("add_edit_user?userId=-1") },
+                containerColor = Color(0xFF6200EE)
             ) {
-                Icon(Icons.Default.Add,null)
+                Icon(Icons.Default.Add, contentDescription = "Nuevo usuario", tint = Color.White)
             }
-        }
-
-    ) { padding ->
-
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
-                .padding(padding)
-                .padding(16.dp)
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-
-            items(users) { user ->
-
+            items(localUsers) { user ->
                 Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 6.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
-
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp),
-                        horizontalArrangement =
-                            Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-
                         Column {
-
-                            Text(user.username)
-
-                            Text(user.email)
-
+                            Text(text = user.username, fontWeight = MaterialTheme.typography.titleMedium.fontWeight)
+                            Text(text = user.email, color = Color.Gray)
                         }
-
-                        Row {
-
+                        // Menú de tres puntos
+                        Box {
                             IconButton(
-                                onClick = {
-
-                                }
+                                onClick = { expandedMenuUserId = if (expandedMenuUserId == user.id) null else user.id }
                             ) {
-                                Icon(
-                                    Icons.Default.Edit,
-                                    null
-                                )
+                                Icon(Icons.Default.MoreVert, contentDescription = "Opciones")
                             }
-
-                            IconButton(
-                                onClick = {
-                                    selectedUser = user
-                                }
+                            DropdownMenu(
+                                expanded = expandedMenuUserId == user.id,
+                                onDismissRequest = { expandedMenuUserId = null }
                             ) {
-                                Icon(
-                                    Icons.Default.Delete,
-                                    null
+                                DropdownMenuItem(
+                                    text = { Text("Editar") },
+                                    onClick = {
+                                        expandedMenuUserId = null
+                                        navController.navigate("add_edit_user?userId=${user.id}")
+                                    },
+                                    leadingIcon = { Icon(Icons.Default.Edit, null) }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Eliminar") },
+                                    onClick = {
+                                        expandedMenuUserId = null
+                                        userToDelete = user
+                                        showDeleteDialog = true
+                                    },
+                                    leadingIcon = { Icon(Icons.Default.Delete, null) }
                                 )
                             }
                         }
@@ -98,45 +129,25 @@ fun LocalUsersScreen(
         }
     }
 
-    selectedUser?.let { user ->
-
+    // Diálogo de confirmación de eliminación
+    if (showDeleteDialog && userToDelete != null) {
         AlertDialog(
-
-            onDismissRequest = {
-                selectedUser = null
-            },
-
-            title = {
-                Text("Eliminar usuario")
-            },
-
-            text = {
-                Text(
-                    "¿Estás seguro de eliminar este usuario?"
-                )
-            },
-
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Eliminar usuario") },
+            text = { Text("¿Estás seguro de que deseas eliminar este usuario?\nEsta acción no se puede deshacer.") },
             confirmButton = {
-
                 TextButton(
                     onClick = {
-
-                        onDelete(user)
-
-                        selectedUser = null
+                        viewModel.deleteLocalUser(userToDelete!!)
+                        showDeleteDialog = false
+                        userToDelete = null
                     }
                 ) {
-                    Text("Eliminar")
+                    Text("Eliminar", color = Color.Red)
                 }
             },
-
             dismissButton = {
-
-                TextButton(
-                    onClick = {
-                        selectedUser = null
-                    }
-                ) {
+                TextButton(onClick = { showDeleteDialog = false }) {
                     Text("Cancelar")
                 }
             }
