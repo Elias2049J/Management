@@ -22,6 +22,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.management.data.local.AppDatabase
+import com.example.management.data.remote.RetrofitClient
+import com.example.management.data.repository.UserRepositoryImpl
 import com.example.management.viewmodel.LoginState
 import com.example.management.viewmodel.UserViewModel
 import com.example.management.viewmodel.UserViewModelFactory
@@ -29,7 +32,18 @@ import com.example.management.viewmodel.UserViewModelFactory
 @Composable
 fun LoginScreen(onLoginSuccess: () -> Unit, onNavigateToSignUp: () -> Unit) {
     val context = LocalContext.current
-    val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(context))
+    
+    val database = AppDatabase.getDatabase(context)
+    
+    val repository = UserRepositoryImpl(
+        apiService = RetrofitClient.apiService,
+        userDao = database.userDao()
+    )
+    
+    val userViewModel: UserViewModel = viewModel(
+        factory = UserViewModelFactory(repository)
+    )
+    
     val loginState by userViewModel.loginState.collectAsState()
 
     var username by remember { mutableStateOf("") }

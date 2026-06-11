@@ -14,7 +14,7 @@ room = "2.6.1"
 navigation = "2.7.7"
 materialIcons = "1.6.3"
 kotlinCompilerExtension = "1.5.8"
-kapt = "1.9.22"
+ksp = "1.9.22-1.0.17"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -43,4 +43,4 @@ androidx-material-icons-extended = { group = "androidx.compose.material", name =
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kapt" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

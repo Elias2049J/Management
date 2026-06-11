@@ -31,8 +31,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.management.data.remote.RetrofitClient
+import com.example.management.data.local.AppDatabase
 import com.example.management.data.repository.UserRepository
 import com.example.management.data.repository.UserRepositoryImpl
 import com.example.management.ui.components.UserCard
@@ -44,8 +46,14 @@ import com.example.management.viewmodel.UserViewModelFactory
 @Composable
 fun UserScreen() {
 
+    val context = LocalContext.current
+
+    val database = AppDatabase.getDatabase(context)
+
+
     val repository: UserRepository = UserRepositoryImpl(
-        apiService = RetrofitClient.apiService
+        apiService = RetrofitClient.apiService,
+        userDao = database.userDao()
     )
 
     val viewModel: UserViewModel = viewModel(

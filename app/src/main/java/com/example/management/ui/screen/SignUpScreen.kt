@@ -23,6 +23,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.management.data.local.LocalUser
+import com.example.management.data.local.AppDatabase
+import com.example.management.data.remote.RetrofitClient
+import com.example.management.data.repository.UserRepositoryImpl
 import com.example.management.viewmodel.RegistrationState
 import com.example.management.viewmodel.UserViewModel
 import com.example.management.viewmodel.UserViewModelFactory
@@ -30,7 +33,18 @@ import com.example.management.viewmodel.UserViewModelFactory
 @Composable
 fun SignUpScreen(onSignUpSuccess: () -> Unit, onNavigateToLogin: () -> Unit) {
     val context = LocalContext.current
-    val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(context))
+    
+    val database = AppDatabase.getDatabase(context)
+    
+    val repository = UserRepositoryImpl(
+        apiService = RetrofitClient.apiService,
+        userDao = database.userDao()
+    )
+    
+    val userViewModel: UserViewModel = viewModel(
+        factory = UserViewModelFactory(repository)
+    )
+    
     val registrationState by userViewModel.registrationState.collectAsState()
 
     var username by remember { mutableStateOf("") }
@@ -86,7 +100,6 @@ fun SignUpScreen(onSignUpSuccess: () -> Unit, onNavigateToLogin: () -> Unit) {
                 val user = LocalUser(username = username, email = email, password = password)
                 userViewModel.registerUser(user)
             } else {
-                // Show error
             }
         }) {
             Text("Registrarme")
